@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3><i class="fas fa-sign-in-alt"></i> Вход в аккаунт</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                {{ form.username.label }}
+                            </label>
+                            <input type="text" class="form-control" name="{{ form.username.name }}" 
+                                   id="{{ form.username.id_for_label }}" 
+                                   placeholder="Имя пользователя или email" required>
+                            {% if form.username.errors %}
+                                <div class="text-danger">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">
+                                {{ form.password.label }}
+                            </label>
+                            <input type="password" class="form-control" name="{{ form.password.name }}" 
+                                   id="{{ form.password.id_for_label }}" 
+                                   placeholder="Пароль" required>
+                            {% if form.password.errors %}
+                                <div class="text-danger">{{ form.password.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-2">
+                        <a href="{% url 'password_reset' %}">Забыли пароль?</a>
+                    </p>
+                    <p class="mb-0">
+                        Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

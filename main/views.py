@@ -5,6 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
 from .models import Product, Category, Cart, CartItem, Wishlist, ProductImage
 from .forms import CustomUserCreationForm, ProductForm, ProductImageFormSet
 
@@ -145,10 +146,15 @@ def cart_detail(request):
 
 
 @login_required
+@require_POST
 def add_to_cart(request, product_id):
     """Добавление товара в корзину"""
     product = get_object_or_404(Product, id=product_id, available=True)
     cart, created = Cart.objects.get_or_create(user=request.user)
+
+    if product.stock <= 0:
+        messages.error(request, f'"{product.name}" нет в наличии')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
     
     cart_item, created = CartItem.objects.get_or_create(
         cart=cart,
@@ -157,6 +163,9 @@ def add_to_cart(request, product_id):
     )
     
     if not created:
+        if cart_item.quantity >= product.stock:
+            messages.warning(request, f'Для "{product.name}" достигнут максимум по остатку ({product.stock} шт.)')
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
         cart_item.quantity += 1
         cart_item.save()
     
@@ -165,26 +174,42 @@ def add_to_cart(request, product_id):
 
 
 @login_required
+@require_POST
 def update_cart_item(request, item_id):
     """Обновление количества товара в корзине"""
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-    
-    if request.method == 'POST':
+
+    try:
         quantity = int(request.POST.get('quantity', 1))
-        
-        if quantity > 0:
-            cart_item.quantity = quantity
-            cart_item.save()
-            messages.success(request, 'Количество товара обновлено')
-        else:
+    except (TypeError, ValueError):
+        messages.error(request, 'Некорректное количество товара')
+        return redirect('cart_detail')
+
+    if quantity > 0:
+        max_allowed = cart_item.product.stock
+        if max_allowed <= 0:
             product_name = cart_item.product.name
             cart_item.delete()
-            messages.success(request, f'{product_name} удален из корзины')
+            messages.warning(request, f'"{product_name}" больше нет в наличии и удален из корзины')
+            return redirect('cart_detail')
+
+        if quantity > max_allowed:
+            quantity = max_allowed
+            messages.warning(request, f'Количество ограничено остатком: {max_allowed} шт.')
+
+        cart_item.quantity = quantity
+        cart_item.save()
+        messages.success(request, 'Количество товара обновлено')
+    else:
+        product_name = cart_item.product.name
+        cart_item.delete()
+        messages.success(request, f'{product_name} удален из корзины')
     
     return redirect('cart_detail')
 
 
 @login_required
+@require_POST
 def remove_from_cart(request, item_id):
     """Удаление товара из корзины"""
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
@@ -196,6 +221,7 @@ def remove_from_cart(request, item_id):
 
 
 @login_required
+@require_POST
 def toggle_wishlist(request, product_id):
     """Добавление/удаление товара из избранного"""
     product = get_object_or_404(Product, id=product_id)

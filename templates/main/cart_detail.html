@@ -61,10 +61,12 @@
                             </div>
                             
                             <div class="col-md-1">
-                                <a href="{% url 'remove_from_cart' item.id %}" class="btn btn-outline-danger btn-sm"
-                                   onclick="return confirm('Удалить товар из корзины?')">
-                                    <i class="fas fa-trash"></i>
-                                </a>
+                                <form method="post" action="{% url 'remove_from_cart' item.id %}" class="d-inline" onsubmit="return confirm('Удалить товар из корзины?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         {% endfor %}

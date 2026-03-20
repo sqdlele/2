@@ -82,9 +82,12 @@
                             <span class="h5 text-primary mb-0">{{ product.price }} ₽</span>
                             <div>
                                 {% if user.is_authenticated %}
-                                    <a href="{% url 'toggle_wishlist' product.id %}" class="btn btn-sm btn-outline-danger">
+                                    <form method="post" action="{% url 'toggle_wishlist' product.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="far fa-heart"></i>
-                                    </a>
+                                        </button>
+                                    </form>
                                 {% endif %}
                             </div>
                         </div>
@@ -93,9 +96,12 @@
                                 Подробнее
                             </a>
                             {% if user.is_authenticated %}
-                                <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary btn-sm">
+                                <form method="post" action="{% url 'add_to_cart' product.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-sm">
                                     <i class="fas fa-cart-plus"></i>
-                                </a>
+                                    </button>
+                                </form>
                             {% endif %}
                         </div>
                     </div>

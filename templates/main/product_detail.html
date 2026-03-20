@@ -18,7 +18,7 @@
         <!-- Изображения товара -->
         <div class="col-lg-6 mb-4">
             {% if images %}
-                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div id="productCarousel" class="carousel slide">
                     <div class="carousel-inner">
                         {% for image in images %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
@@ -28,10 +28,10 @@
                         {% endfor %}
                     </div>
                     {% if images|length > 1 %}
-                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <button class="carousel-control-prev" type="button">
                         <span class="carousel-control-prev-icon"></span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                    <button class="carousel-control-next" type="button">
                         <span class="carousel-control-next-icon"></span>
                     </button>
                     {% endif %}
@@ -61,8 +61,8 @@
                 <h1>{{ product.name }}</h1>
                 {% if user.is_staff %}
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
-                                data-bs-toggle="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                data-toggle="dropdown">
                             <i class="fas fa-cog"></i>
                         </button>
                         <ul class="dropdown-menu">
@@ -111,20 +111,25 @@
             {% if user.is_authenticated %}
                 <div class="d-flex gap-3 mb-4">
                     {% if product.available and product.stock > 0 %}
-                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-cart-plus"></i> Добавить в корзину
-                        </a>
+                        <form method="post" action="{% url 'add_to_cart' product.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-cart-plus"></i> Добавить в корзину
+                            </button>
+                        </form>
                     {% else %}
                         <button class="btn btn-secondary btn-lg" disabled>
                             <i class="fas fa-times"></i> Нет в наличии
                         </button>
                     {% endif %}
                     
-                    <a href="{% url 'toggle_wishlist' product.id %}" 
-                       class="btn btn-outline-danger btn-lg">
-                        <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart"></i>
-                        {% if in_wishlist %}В избранном{% else %}В избранное{% endif %}
-                    </a>
+                    <form method="post" action="{% url 'toggle_wishlist' product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-lg">
+                            <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart"></i>
+                            {% if in_wishlist %}В избранном{% else %}В избранное{% endif %}
+                        </button>
+                    </form>
                 </div>
             {% else %}
                 <div class="alert alert-info">
@@ -162,9 +167,12 @@
                             <span class="h6 text-primary mb-0">{{ related_product.price }} ₽</span>
                             <div>
                                 {% if user.is_authenticated %}
-                                    <a href="{% url 'toggle_wishlist' related_product.id %}" class="btn btn-sm btn-outline-danger">
-                                        <i class="far fa-heart"></i>
-                                    </a>
+                                    <form method="post" action="{% url 'toggle_wishlist' related_product.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="far fa-heart"></i>
+                                        </button>
+                                    </form>
                                 {% endif %}
                             </div>
                         </div>
@@ -173,9 +181,12 @@
                                 Подробнее
                             </a>
                             {% if user.is_authenticated %}
-                                <a href="{% url 'add_to_cart' related_product.id %}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-cart-plus"></i>
-                                </a>
+                                <form method="post" action="{% url 'add_to_cart' related_product.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
                             {% endif %}
                         </div>
                     </div>

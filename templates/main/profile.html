@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+{% block content %}
+<p>Ваш Email: {{ user.email }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Обновить данные</button>
+</form>
+
+<hr>
+<a href="{% url 'logout' %}">Выйти из аккаунта</a>
+{% endblock %}

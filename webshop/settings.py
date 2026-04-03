@@ -117,8 +117,7 @@ AUTH_USER_MODEL = 'main.User'
 
 # Login/Logout URLs
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'profile'
+LOGOUT_REDIRECT_URL = 'home'
 
-# Email settings (для восстановления пароля)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

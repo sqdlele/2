@@ -69,7 +69,6 @@ class ProductImageForm(forms.ModelForm):
         }
 
 
-# Формсет для множественных изображений
 ProductImageFormSet = inlineformset_factory(
     Product, 
     ProductImage, 

@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container py-4">
-    <!-- Навигационные крошки -->
+    
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
@@ -15,7 +15,7 @@
     </nav>
     
     <div class="row">
-        <!-- Изображения товара -->
+        
         <div class="col-lg-6 mb-4">
             {% if images %}
                 <div id="productCarousel" class="carousel slide">
@@ -37,7 +37,7 @@
                     {% endif %}
                 </div>
                 
-                <!-- Миниатюры -->
+                
                 {% if images|length > 1 %}
                 <div class="row mt-3">
                     {% for image in images %}
@@ -55,7 +55,7 @@
             {% endif %}
         </div>
         
-        <!-- Информация о товаре -->
+        
         <div class="col-lg-6">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <h1>{{ product.name }}</h1>
@@ -107,7 +107,7 @@
                 </small>
             </div>
             
-            <!-- Действия -->
+            
             {% if user.is_authenticated %}
                 <div class="d-flex gap-3 mb-4">
                     {% if product.available and product.stock > 0 %}
@@ -141,7 +141,7 @@
         </div>
     </div>
     
-    <!-- Похожие товары -->
+    
     {% if related_products %}
     <section class="mt-5">
         <h3 class="mb-4">Похожие товары</h3>

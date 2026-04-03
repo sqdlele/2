@@ -5,17 +5,14 @@ from PIL import Image
 
 
 class User(AbstractUser):
-    """Кастомная модель пользователя"""
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20, blank=True)
-    address = models.TextField(blank=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
 
 class Category(models.Model):
-    """Модель категории товаров"""
     name = models.CharField(max_length=100, verbose_name='Название')
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField(blank=True, verbose_name='Описание')
@@ -35,7 +32,6 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    """Модель товара"""
     name = models.CharField(max_length=200, verbose_name='Название')
     slug = models.SlugField(max_length=200, unique=True)
     description = models.TextField(verbose_name='Описание')
@@ -64,7 +60,6 @@ class Product(models.Model):
 
 
 class ProductImage(models.Model):
-    """Модель для множественных изображений товара"""
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='products/')
     alt_text = models.CharField(max_length=200, blank=True)
@@ -75,12 +70,10 @@ class ProductImage(models.Model):
         verbose_name_plural = 'Изображения товаров'
     
     def save(self, *args, **kwargs):
-        # Если это главное изображение, убираем флаг у других изображений этого товара
         if self.is_main:
             ProductImage.objects.filter(product=self.product, is_main=True).update(is_main=False)
         super().save(*args, **kwargs)
         
-        # Изменяем размер изображения
         if self.image:
             img = Image.open(self.image.path)
             if img.height > 800 or img.width > 800:
@@ -90,7 +83,6 @@ class ProductImage(models.Model):
 
 
 class Cart(models.Model):
-    """Модель корзины"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -106,7 +98,6 @@ class Cart(models.Model):
 
 
 class CartItem(models.Model):
-    """Модель элемента корзины"""
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
@@ -123,7 +114,6 @@ class CartItem(models.Model):
 
 
 class Wishlist(models.Model):
-    """Модель избранного"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wishlist')
     products = models.ManyToManyField(Product, blank=True, related_name='wishlisted_by')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -133,7 +123,6 @@ class Wishlist(models.Model):
 
 
 class Order(models.Model):
-    """Модель заказа"""
     STATUS_CHOICES = [
         ('pending', 'Ожидает обработки'),
         ('processing', 'В обработке'),
@@ -157,7 +146,6 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    """Модель элемента заказа"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()

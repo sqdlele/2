@@ -11,7 +11,7 @@ from .forms import CustomUserCreationForm, ProductForm, ProductImageFormSet
 
 
 def home(request):
-    """Главная страница"""
+    
     categories = Category.objects.all()
     featured_products = Product.objects.filter(available=True)[:8]
     
@@ -21,19 +21,36 @@ def home(request):
     }
     return render(request, 'main/home.html', context)
 
+from django.views.generic import UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from .models import User
 
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=request.user)
+    
+    return render(request, 'users/profile.html', {'form': form})
+
+def info_view(request):
+    return render(request, 'main/info.html')
 def product_list(request):
-    """Список товаров с фильтрацией и сортировкой"""
+    
     products = Product.objects.filter(available=True).select_related('category')
     categories = Category.objects.all()
     
-    # Фильтрация по категории
     category_slug = request.GET.get('category')
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug)
         products = products.filter(category=category)
     
-    # Поиск
+    
     search_query = request.GET.get('search')
     if search_query:
         products = products.filter(
@@ -41,7 +58,6 @@ def product_list(request):
             Q(description__icontains=search_query)
         )
     
-    # Сортировка
     sort_by = request.GET.get('sort', 'name')
     if sort_by == 'price_low':
         products = products.order_by('price')
@@ -52,7 +68,7 @@ def product_list(request):
     else:
         products = products.order_by('name')
     
-    # Пагинация
+    
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -68,7 +84,7 @@ def product_list(request):
 
 
 def product_detail(request, slug):
-    """Детальная страница товара"""
+    
     product = get_object_or_404(Product, slug=slug, available=True)
     images = product.images.all()
     related_products = Product.objects.filter(
@@ -76,7 +92,6 @@ def product_detail(request, slug):
         available=True
     ).exclude(id=product.id)[:4]
     
-    # Проверяем, есть ли товар в избранном
     in_wishlist = False
     if request.user.is_authenticated:
         wishlist, created = Wishlist.objects.get_or_create(user=request.user)
@@ -92,11 +107,11 @@ def product_detail(request, slug):
 
 
 def category_detail(request, slug):
-    """Страница категории"""
+    
     category = get_object_or_404(Category, slug=slug)
     products = Product.objects.filter(category=category, available=True)
     
-    # Сортировка
+    
     sort_by = request.GET.get('sort', 'name')
     if sort_by == 'price_low':
         products = products.order_by('price')
@@ -107,7 +122,7 @@ def category_detail(request, slug):
     else:
         products = products.order_by('name')
     
-    # Пагинация
+    
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -121,7 +136,7 @@ def category_detail(request, slug):
 
 
 def register(request):
-    """Регистрация пользователя"""
+    
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -137,7 +152,7 @@ def register(request):
 
 @login_required
 def cart_detail(request):
-    """Страница корзины"""
+    
     cart, created = Cart.objects.get_or_create(user=request.user)
     context = {
         'cart': cart,
@@ -148,7 +163,7 @@ def cart_detail(request):
 @login_required
 @require_POST
 def add_to_cart(request, product_id):
-    """Добавление товара в корзину"""
+    
     product = get_object_or_404(Product, id=product_id, available=True)
     cart, created = Cart.objects.get_or_create(user=request.user)
 
@@ -176,7 +191,7 @@ def add_to_cart(request, product_id):
 @login_required
 @require_POST
 def update_cart_item(request, item_id):
-    """Обновление количества товара в корзине"""
+    
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
 
     try:
@@ -211,7 +226,7 @@ def update_cart_item(request, item_id):
 @login_required
 @require_POST
 def remove_from_cart(request, item_id):
-    """Удаление товара из корзины"""
+    
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     product_name = cart_item.product.name
     cart_item.delete()
@@ -223,7 +238,7 @@ def remove_from_cart(request, item_id):
 @login_required
 @require_POST
 def toggle_wishlist(request, product_id):
-    """Добавление/удаление товара из избранного"""
+    
     product = get_object_or_404(Product, id=product_id)
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
     
@@ -240,7 +255,7 @@ def toggle_wishlist(request, product_id):
 
 @login_required
 def wishlist_detail(request):
-    """Страница избранного"""
+    
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
     context = {
         'wishlist': wishlist,
@@ -250,7 +265,7 @@ def wishlist_detail(request):
 
 @login_required
 def add_product(request):
-    """Добавление нового товара (для администраторов)"""
+    
     if not request.user.is_staff:
         messages.error(request, 'У вас нет прав для добавления товаров')
         return redirect('home')
@@ -279,7 +294,7 @@ def add_product(request):
 
 @login_required
 def edit_product(request, slug):
-    """Редактирование товара (для администраторов)"""
+    
     if not request.user.is_staff:
         messages.error(request, 'У вас нет прав для редактирования товаров')
         return redirect('home')
@@ -310,7 +325,7 @@ def edit_product(request, slug):
 
 @login_required
 def delete_product(request, slug):
-    """Удаление товара (для администраторов)"""
+    
     if not request.user.is_staff:
         messages.error(request, 'У вас нет прав для удаления товаров')
         return redirect('home')
